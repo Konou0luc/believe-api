@@ -28,6 +28,12 @@ const TemoignagesController = {
       delete body.nomClient;
       delete body.message;
       
+      // En développement, approuver automatiquement les témoignages
+      // En production, ils doivent être modérés manuellement
+      if (process.env.NODE_ENV === 'development') {
+        body.approuve = true;
+      }
+      
       const created = await Temoignage.create(body);
       res.status(201).json(created);
     } catch (err) {
