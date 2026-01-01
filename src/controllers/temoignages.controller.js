@@ -12,6 +12,15 @@ const TemoignagesController = {
       next(err);
     }
   },
+  async list(req, res, next) {
+    try {
+      // Retourner tous les témoignages pour l'admin (sans filtre)
+      const list = await Temoignage.find().sort({ createdAt: -1 });
+      res.json(list);
+    } catch (err) {
+      next(err);
+    }
+  },
   async create(req, res, next) {
     try {
       const body = { ...req.body };
