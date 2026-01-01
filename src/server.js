@@ -34,7 +34,7 @@ app.use('/api', routes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT;
 
 // Démarrage du serveur après connexion à la DB
 connectToDatabase()
