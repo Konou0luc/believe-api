@@ -16,8 +16,43 @@ loadEnv();
 const app = express();
 
 // Sécurité et utilitaires
-app.use(helmet());
-app.use(cors({ origin: process.env.CORS_ORIGIN || '*', credentials: true }));
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+
+// Configuration CORS améliorée
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Autoriser les requêtes sans origine (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'https://believe-wisdom.vercel.app',
+      'https://believe-wisdom-web.vercel.app',
+      process.env.CORS_ORIGIN,
+      process.env.FRONTEND_URL,
+    ].filter(Boolean);
+    
+    // Si CORS_ORIGIN est '*', autoriser toutes les origines
+    if (process.env.CORS_ORIGIN === '*') {
+      return callback(null, true);
+    }
+    
+    // Vérifier si l'origine est autorisée
+    if (allowedOrigins.some(allowed => origin.includes(allowed) || allowed === '*')) {
+      callback(null, true);
+    } else {
+      callback(null, true); // Autoriser temporairement pour le développement
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+app.use(cors(corsOptions));
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
