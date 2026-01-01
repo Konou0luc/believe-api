@@ -3,7 +3,7 @@ const Service = require('../models/Service');
 const ServicesController = {
   async list(req, res, next) {
     try {
-      const services = await Service.find().sort({ createdAt: -1 });
+      const services = await Service.find().populate('categorie', 'nom description couleur').sort({ createdAt: -1 });
       res.json(services);
     } catch (err) {
       next(err);
@@ -12,6 +12,7 @@ const ServicesController = {
   async create(req, res, next) {
     try {
       const created = await Service.create(req.body);
+      await created.populate('categorie', 'nom description couleur');
       res.status(201).json(created);
     } catch (err) {
       next(err);
@@ -22,6 +23,7 @@ const ServicesController = {
       const { id } = req.params;
       const updated = await Service.findByIdAndUpdate(id, req.body, { new: true });
       if (!updated) return res.status(404).json({ message: 'Service non trouvé' });
+      await updated.populate('categorie', 'nom description couleur');
       res.json(updated);
     } catch (err) {
       next(err);
