@@ -45,7 +45,18 @@ const ReservationsController = {
   async updateStatus(req, res, next) {
     try {
       const { id } = req.params;
-      const { statut } = req.body;
+      let { statut } = req.body;
+      
+      // Mapper les valeurs sans accents vers celles avec accents pour correspondre au modèle
+      const statutMap = {
+        'confirme': 'confirmé',
+        'annule': 'annulé',
+      };
+      
+      if (statutMap[statut]) {
+        statut = statutMap[statut];
+      }
+      
       const updated = await Reservation.findByIdAndUpdate(id, { statut }, { new: true });
       if (!updated) return res.status(404).json({ message: 'Réservation non trouvée' });
       res.json(updated);

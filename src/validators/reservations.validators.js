@@ -26,7 +26,7 @@ const reservationCreateSchema = Joi.object({
 
 const reservationStatusSchema = Joi.object({
   body: Joi.object({
-    statut: Joi.string().valid('en_attente', 'confirmé', 'annulé').required(),
+    statut: Joi.string().valid('en_attente', 'confirme', 'confirmé', 'annule', 'annulé').required(),
   }),
   params: Joi.object({ id: Joi.string().required() }),
   query: Joi.object({}).unknown(true),
