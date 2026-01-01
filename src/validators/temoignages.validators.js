@@ -2,9 +2,14 @@ const Joi = require('joi');
 
 const temoignageCreateSchema = Joi.object({
   body: Joi.object({
-    nomClient: Joi.string().required(),
-    message: Joi.string().min(5).required(),
+    // Accepter les champs du frontend
+    nom: Joi.string().required(),
+    email: Joi.string().email().required(),
     note: Joi.number().min(1).max(5).required(),
+    commentaire: Joi.string().min(5).required(),
+    // Accepter aussi les anciens champs pour compatibilité
+    nomClient: Joi.string().optional(),
+    message: Joi.string().optional(),
   }),
   params: Joi.object({}).unknown(true),
   query: Joi.object({}).unknown(true),
@@ -12,7 +17,9 @@ const temoignageCreateSchema = Joi.object({
 
 const temoignageModerateSchema = Joi.object({
   body: Joi.object({
-    valide: Joi.boolean().required(),
+    approuve: Joi.boolean().required(),
+    // Accepter aussi valide pour compatibilité
+    valide: Joi.boolean().optional(),
   }),
   params: Joi.object({ id: Joi.string().required() }),
   query: Joi.object({}).unknown(true),
