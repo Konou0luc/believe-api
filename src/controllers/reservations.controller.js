@@ -29,7 +29,21 @@ const ReservationsController = {
       }
       
       const created = await Reservation.create(body);
-      res.status(201).json(created);
+      
+      // Mapper la réponse pour le frontend
+      const responseObj = created.toObject();
+      // Ajouter typeService pour compatibilité frontend
+      if (responseObj.service && !responseObj.typeService) {
+        responseObj.typeService = responseObj.service;
+      }
+      // Normaliser le statut (bien que par défaut ce soit 'en_attente')
+      if (responseObj.statut === 'confirmé') {
+        responseObj.statut = 'confirme';
+      } else if (responseObj.statut === 'annulé') {
+        responseObj.statut = 'annule';
+      }
+      
+      res.status(201).json(responseObj);
     } catch (err) {
       next(err);
     }
@@ -37,7 +51,24 @@ const ReservationsController = {
   async list(req, res, next) {
     try {
       const reservations = await Reservation.find().sort({ createdAt: -1 });
-      res.json(reservations);
+      
+      // Mapper les réservations pour ajouter typeService et normaliser les statuts
+      const mappedReservations = reservations.map(reservation => {
+        const reservationObj = reservation.toObject();
+        // Mapper les statuts pour correspondre au format frontend
+        if (reservationObj.statut === 'confirmé') {
+          reservationObj.statut = 'confirme';
+        } else if (reservationObj.statut === 'annulé') {
+          reservationObj.statut = 'annule';
+        }
+        // Ajouter typeService pour compatibilité frontend
+        if (reservationObj.service && !reservationObj.typeService) {
+          reservationObj.typeService = reservationObj.service;
+        }
+        return reservationObj;
+      });
+      
+      res.json(mappedReservations);
     } catch (err) {
       next(err);
     }
@@ -59,7 +90,73 @@ const ReservationsController = {
       
       const updated = await Reservation.findByIdAndUpdate(id, { statut }, { new: true });
       if (!updated) return res.status(404).json({ message: 'Réservation non trouvée' });
-      res.json(updated);
+      
+      // Mapper la réponse pour le frontend (sans accents)
+      const responseObj = updated.toObject();
+      if (responseObj.statut === 'confirmé') {
+        responseObj.statut = 'confirme';
+      } else if (responseObj.statut === 'annulé') {
+        responseObj.statut = 'annule';
+      }
+      // Ajouter typeService pour compatibilité frontend
+      if (responseObj.service && !responseObj.typeService) {
+        responseObj.typeService = responseObj.service;
+      }
+      
+      res.json(responseObj);
+    } catch (err) {
+      next(err);
+    }
+  },
+  async getByEmail(req, res, next) {
+    try {
+      const { email } = req.params;
+      
+      if (!email) {
+        return res.status(400).json({ message: 'Email requis' });
+      }
+      
+      // Décoder l'email (au cas où il serait encodé)
+      let decodedEmail;
+      try {
+        decodedEmail = decodeURIComponent(email);
+      } catch (err) {
+        decodedEmail = email; // Si le décodage échoue, utiliser l'email tel quel
+      }
+      
+      // Validation basique de l'email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(decodedEmail)) {
+        return res.status(400).json({ message: 'Format d\'email invalide' });
+      }
+      
+      // Normaliser l'email (minuscules, trim)
+      const normalizedEmail = decodedEmail.toLowerCase().trim();
+      
+      const reservations = await Reservation.find({ email: normalizedEmail })
+        .sort({ createdAt: -1 });
+      
+      if (reservations.length === 0) {
+        return res.status(404).json({ message: 'Aucune réservation trouvée pour cet email' });
+      }
+      
+      // Mapper les statuts avec accents vers ceux sans accents pour le frontend
+      const mappedReservations = reservations.map(reservation => {
+        const reservationObj = reservation.toObject();
+        // Mapper les statuts pour correspondre au format frontend
+        if (reservationObj.statut === 'confirmé') {
+          reservationObj.statut = 'confirme';
+        } else if (reservationObj.statut === 'annulé') {
+          reservationObj.statut = 'annule';
+        }
+        // Ajouter typeService pour compatibilité frontend
+        if (reservationObj.service && !reservationObj.typeService) {
+          reservationObj.typeService = reservationObj.service;
+        }
+        return reservationObj;
+      });
+      
+      res.json(mappedReservations);
     } catch (err) {
       next(err);
     }

@@ -19,6 +19,17 @@ const contactLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-module.exports = { authLimiter, contactLimiter };
+// Limite pour les réservations publiques (recherche par email)
+const reservationPublicLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 20, // 20 requêtes par fenêtre de 5 minutes
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    message: 'Trop de requêtes, réessayez dans quelques minutes.'
+  }
+});
+
+module.exports = { authLimiter, contactLimiter, reservationPublicLimiter };
 
 
